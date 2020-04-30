@@ -46,9 +46,8 @@ export default ApplicationAdapter.extend({
     };
     if (this.get('version.isEnterprise') && this.get('namespaceService.inRootNamespace')) {
       fetches.replicationStatus = this.replicationStatus().catch(e => e);
-      fetches.replicationModeStatus = this.replicationModeStatus().catch(e => e);
     }
-    return hash(fetches).then(({ health, sealStatus, replicationStatus, replicationModeStatus }) => {
+    return hash(fetches).then(({ health, sealStatus, replicationStatus }) => {
       let ret = {
         id,
         name: snapshot.attr('name'),
@@ -58,11 +57,6 @@ export default ApplicationAdapter.extend({
         ret = assign(ret, { nodes: [sealStatus] });
       }
       if (replicationStatus && replicationStatus instanceof AdapterError === false) {
-        console.log(replicationModeStatus.data.reindex_stage, ' - reindex stage');
-        console.log(replicationModeStatus.data.reindex_building_progress, ' - build progress');
-        console.log(replicationModeStatus.data.reindex_building_total, ' - build total');
-        console.log(replicationModeStatus.data.reindex_in_progress, ' - reindex in progress?');
-
         ret = assign(ret, replicationStatus.data);
       }
       return resolve(ret);
@@ -165,7 +159,7 @@ export default ApplicationAdapter.extend({
 
   urlForReplication(replicationMode, clusterMode, endpoint) {
     let suffix;
-    const errString = `Calls to replication ${endpoint} endpoint are not currently allowed in the vault cluster adapter`;
+    const errString = `Calls to replication ${endpoint} endpoint are not currently allowed in the vault cluster adapater`;
     if (clusterMode) {
       assert(errString, REPLICATION_ENDPOINTS[clusterMode].includes(endpoint));
       suffix = `${replicationMode}/${clusterMode}/${endpoint}`;
@@ -178,10 +172,6 @@ export default ApplicationAdapter.extend({
 
   replicationStatus() {
     return this.ajax(`${this.buildURL()}/replication/status`, 'GET', { unauthenticated: true });
-  },
-
-  replicationModeStatus() {
-    return this.ajax(`${this.buildURL()}/replication/performance/status`, 'GET', { unauthenticated: true });
   },
 
   replicationDrPromote(data, options) {
