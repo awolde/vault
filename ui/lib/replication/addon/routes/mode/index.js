@@ -16,10 +16,12 @@ export default Route.extend({
       canRevokeSecondary: this.store
         .findRecord('capabilities', `sys/replication/${replicationMode}/primary/revoke-secondary`)
         .then(c => c.get('canUpdate')),
-    }).then(({ cluster, canAddSecondary, canRevokeSecondary }) => {
+      replicationModeStatus: this.store.queryRecord('replication-mode', {}).then(resp => resp.status),
+    }).then(({ cluster, canAddSecondary, canRevokeSecondary, replicationModeStatus }) => {
       setProperties(cluster, {
         canRevokeSecondary,
         canAddSecondary,
+        replicationModeStatus,
       });
       return cluster;
     });
